@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { deleteFromWatchlist } from "../../../../actions/watchlist";
 import { auth } from "@clerk/nextjs/server";
 
+// Define the params interface
+interface Params {
+  id: string;
+}
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<Params> }
 ) {
   const { userId } = await auth();
   if (!userId) {
@@ -12,7 +17,8 @@ export async function DELETE(
   }
 
   try {
-    await deleteFromWatchlist(params.id);
+    const { id } = await context.params; // Await the params Promise
+    await deleteFromWatchlist(id);
     return NextResponse.json({ message: "حساب از لیست تماشا حذف شد" });
   } catch (error) {
     console.error("Error deleting from watchlist:", error);

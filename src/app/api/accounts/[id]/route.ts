@@ -2,9 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { databases, DATABASE_ID, ACCOUNTS_COLLECTION_ID } from "@lib/appwrite";
 import { auth } from "@clerk/nextjs/server";
 import { deleteAccount } from "actions/accounts";
+
+// Define the params interface
+interface Params {
+  id: string;
+}
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<Params> }
 ) {
   const { userId } = await auth();
   if (!userId) {
@@ -12,8 +18,9 @@ export async function PUT(
   }
 
   try {
+    const { id } = await context.params; // Await the params Promise
     const data = await request.json();
-    console.log("Updating account:", params.id, "with data:", data); // Debug log
+    console.log("Updating account:", id, "with data:", data); // Debug log
 
     // Ensure only allowed fields are updated
     const updateData = {
@@ -31,7 +38,7 @@ export async function PUT(
     const updatedDoc = await databases.updateDocument(
       DATABASE_ID,
       ACCOUNTS_COLLECTION_ID,
-      params.id,
+      id,
       updateData
     );
     console.log("Update successful:", updatedDoc); // Debug log
@@ -43,9 +50,10 @@ export async function PUT(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<Params> }
 ) {
   const { userId } = await auth();
   if (!userId) {
@@ -53,7 +61,8 @@ export async function DELETE(
   }
 
   try {
-    await deleteAccount(params.id);
+    const { id } = await context.params; // Await the params Promise
+    await deleteAccount(id);
     return NextResponse.json({ message: "حساب با موفقیت حذف شد" });
   } catch (error) {
     console.error("Error deleting account:", error);
