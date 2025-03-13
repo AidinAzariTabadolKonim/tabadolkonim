@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Container,
   Typography,
@@ -19,8 +19,10 @@ import { useRouter } from "next/navigation";
 import FiltersAccordion from "@components/FiltersAccordion";
 import AddAccountAccordion from "@components/AddAccountAccordion";
 import AccountsTable from "@components/AccountsTable";
+import HeroComponent from "@components/HeroComponent";
 
 export default function Home() {
+  // Existing state and hooks (keep all existing code)
   const {
     allAccounts,
     loading: accountsLoading,
@@ -69,6 +71,20 @@ export default function Home() {
     filteredAccounts,
   } = useFilters(allAccounts);
 
+  // Add refs for scrolling
+  const addAccountRef = useRef<HTMLDivElement>(null);
+  const checkListRef = useRef<HTMLDivElement>(null);
+
+  // Scroll handlers
+  const handleAddAccountClick = () => {
+    addAccountRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleCheckListClick = () => {
+    checkListRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Existing functions (keep all existing code)
   const exportToExcel = () => {
     const filteredData = filteredAccounts.map(({ ...rest }) => rest);
     const ws = XLSX.utils.json_to_sheet(filteredData);
@@ -130,6 +146,7 @@ export default function Home() {
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
+
   const handleDeleteFromWatchlist = async (watchlistId: string) => {
     const result = await deleteFromWatchlist(watchlistId);
     setSnackbarMessage(result.message);
@@ -137,89 +154,108 @@ export default function Home() {
     setSnackbarOpen(true);
     if (result.success) refetch();
   };
+
   return (
-    <Container>
-      <Typography variant="h1" gutterBottom sx={{ fontSize: "2.5rem" }}>
-        لیست حساب‌های اینستاگرام
-      </Typography>
-      <Box sx={{ mt: 2, mb: 2, display: "flex", alignItems: "center", gap: 2 }}>
-        <Typography variant="body1">
-          تعداد نتایج: {filteredAccounts.length} / {allAccounts.length}
-        </Typography>
-        <Button variant="contained" onClick={exportToExcel}>
-          دانلود به صورت اکسل
-        </Button>
-      </Box>
-      <FiltersAccordion
-        filterId={filterId}
-        setFilterId={setFilterId}
-        filterName={filterName}
-        setFilterName={setFilterName}
-        filterCategory={filterCategory}
-        setFilterCategory={setFilterCategory}
-        filterWouldLikeBack={filterWouldLikeBack}
-        setFilterWouldLikeBack={setFilterWouldLikeBack}
-        filterWouldShareBack={filterWouldShareBack}
-        setFilterWouldShareBack={setFilterWouldShareBack}
-        filterWouldFollowBack={filterWouldFollowBack}
-        setFilterWouldFollowBack={setFilterWouldFollowBack}
-        filterWouldCommentBack={filterWouldCommentBack}
-        setFilterWouldCommentBack={setFilterWouldCommentBack}
-        filterHasSupportGroup={filterHasSupportGroup}
-        setFilterHasSupportGroup={setFilterHasSupportGroup}
-        filterHasInstagramMarketingBusiness={
-          filterHasInstagramMarketingBusiness
-        }
-        setFilterHasInstagramMarketingBusiness={
-          setFilterHasInstagramMarketingBusiness
-        }
+    <>
+      {/* Hero Section */}
+      <HeroComponent
+        onAddAccountClick={handleAddAccountClick}
+        onCheckListClick={handleCheckListClick}
       />
-      <AddAccountAccordion
-        newUsername={newUsername}
-        setNewUsername={setNewUsername}
-        newLink={newLink}
-        setNewLink={setNewLink}
-        newCategory={newCategory}
-        setNewCategory={setNewCategory}
-        wouldLikeBack={wouldLikeBack}
-        setWouldLikeBack={setWouldLikeBack}
-        wouldShareBack={wouldShareBack}
-        setWouldShareBack={setWouldShareBack}
-        wouldFollowBack={wouldFollowBack}
-        setWouldFollowBack={setWouldFollowBack}
-        wouldCommentBack={wouldCommentBack}
-        setWouldCommentBack={setWouldCommentBack}
-        hasSupportGroup={hasSupportGroup}
-        setHasSupportGroup={setHasSupportGroup}
-        hasInstagramMarketingBusiness={hasInstagramMarketingBusiness}
-        setHasInstagramMarketingBusiness={setHasInstagramMarketingBusiness}
-        handleAddAccount={handleAddAccount}
-        addLoading={false}
-        addError={null}
-      />
-      <AccountsTable
-        accounts={filteredAccounts}
-        rateAccount={handleRateAccount}
-        addToWatchlist={handleAddToWatchlist}
-        deleteFromWatchlist={handleDeleteFromWatchlist}
-        watchlist={watchlist} // Pass full watchlist, not mapped IDs
-        loading={accountsLoading}
-        error={accountsError}
-      />
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleSnackbarClose}
-          severity={snackbarSeverity}
-          sx={{ width: "100%" }}
+
+      {/* Main Content */}
+      <Container sx={{ mt: 4 }}>
+        {/* Add Account Section with ref */}
+        <div ref={addAccountRef}>
+          <AddAccountAccordion
+            newUsername={newUsername}
+            setNewUsername={setNewUsername}
+            newLink={newLink}
+            setNewLink={setNewLink}
+            newCategory={newCategory}
+            setNewCategory={setNewCategory}
+            wouldLikeBack={wouldLikeBack}
+            setWouldLikeBack={setWouldLikeBack}
+            wouldShareBack={wouldShareBack}
+            setWouldShareBack={setWouldShareBack}
+            wouldFollowBack={wouldFollowBack}
+            setWouldFollowBack={setWouldFollowBack}
+            wouldCommentBack={wouldCommentBack}
+            setWouldCommentBack={setWouldCommentBack}
+            hasSupportGroup={hasSupportGroup}
+            setHasSupportGroup={setHasSupportGroup}
+            hasInstagramMarketingBusiness={hasInstagramMarketingBusiness}
+            setHasInstagramMarketingBusiness={setHasInstagramMarketingBusiness}
+            handleAddAccount={handleAddAccount}
+            addLoading={false}
+            addError={null}
+          />
+        </div>
+        {/* Filters */}
+        <FiltersAccordion
+          filterId={filterId}
+          setFilterId={setFilterId}
+          filterName={filterName}
+          setFilterName={setFilterName}
+          filterCategory={filterCategory}
+          setFilterCategory={setFilterCategory}
+          filterWouldLikeBack={filterWouldLikeBack}
+          setFilterWouldLikeBack={setFilterWouldLikeBack}
+          filterWouldShareBack={filterWouldShareBack}
+          setFilterWouldShareBack={setFilterWouldShareBack}
+          filterWouldFollowBack={filterWouldFollowBack}
+          setFilterWouldFollowBack={setFilterWouldFollowBack}
+          filterWouldCommentBack={filterWouldCommentBack}
+          setFilterWouldCommentBack={setFilterWouldCommentBack}
+          filterHasSupportGroup={filterHasSupportGroup}
+          setFilterHasSupportGroup={setFilterHasSupportGroup}
+          filterHasInstagramMarketingBusiness={
+            filterHasInstagramMarketingBusiness
+          }
+          setFilterHasInstagramMarketingBusiness={
+            setFilterHasInstagramMarketingBusiness
+          }
+        />
+        {/* Results Counter and Excel Button */}
+        <Box
+          sx={{ mt: 2, mb: 2, display: "flex", alignItems: "center", gap: 2 }}
         >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Container>
+          <Typography variant="body1">
+            تعداد نتایج: {filteredAccounts.length} / {allAccounts.length}
+          </Typography>
+          <Button variant="contained" onClick={exportToExcel}>
+            دانلود به صورت اکسل
+          </Button>
+        </Box>
+        {/* Accounts Table with ref */}
+        <div ref={checkListRef}>
+          <AccountsTable
+            accounts={filteredAccounts}
+            rateAccount={handleRateAccount}
+            addToWatchlist={handleAddToWatchlist}
+            deleteFromWatchlist={handleDeleteFromWatchlist}
+            watchlist={watchlist}
+            loading={accountsLoading}
+            error={accountsError}
+          />
+        </div>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleSnackbarClose}
+            severity={snackbarSeverity}
+            sx={{ width: "100%" }}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
+      </Container>
+    </>
   );
 }
