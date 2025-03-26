@@ -1,10 +1,9 @@
-// hooks/useGenerate.ts
 import { useState } from "react";
-import { useWizard } from "../context/WizardContext"; // Adjust path as needed
+import { useWizard } from "../context/WizardContext";
 import { getEnhancedChannelInstructions } from "../utils/channelInstructions";
 
 export const useGenerate = () => {
-  const { data } = useWizard();
+  const { data, setData } = useWizard();
   const [generatedText, setGeneratedText] = useState("");
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,16 +81,45 @@ export const useGenerate = () => {
         body: JSON.stringify({ prompt: promptText }),
       });
 
-      if (!response.ok) throw new Error("خطا در سرور");
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("برای تولید متن، ابتدا باید وارد شوید");
+        }
+        if (response.status === 429) {
+          const errorData = await response.json();
+          throw new Error(errorData.error);
+        }
+        throw new Error("خطا در سرور");
+      }
+
       const result = await response.json();
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
       const text =
         result.generated_text ||
         result[0]?.generated_text ||
         "پاسخی دریافت نشد";
       setGeneratedText(text);
+
+      // Fetch the updated dailyCount from the new API route
+      const apiCallDataResponse = await fetch("/api/getApiCallData");
+      if (!apiCallDataResponse.ok) {
+        const errorData = await apiCallDataResponse.json();
+        throw new Error(errorData.error);
+      }
+
+      const apiCallData = await apiCallDataResponse.json();
+      const newDailyCount = apiCallData.dailyCount;
+      setData({ remainingTries: Math.max(0, 3 - newDailyCount) });
     } catch (error) {
       console.error("Error:", error);
-      setGeneratedText("خطا در ارتباط با سرور. لطفاً دوباره امتحان کنید.");
+      setGeneratedText(
+        error instanceof Error
+          ? error.message
+          : "خطا در ارتباط با سرور. لطفاً دوباره امتحان کنید."
+      );
     } finally {
       setLoading(false);
     }
@@ -126,7 +154,7 @@ export const useGenerateForStep8 = () => {
     snackbarOpen,
     setSnackbarOpen,
     handleGenerate,
-    handleCopyToClipboard, // Include this
+    handleCopyToClipboard,
     handleCloseSnackbar,
   } = useGenerate();
   return {
@@ -136,7 +164,7 @@ export const useGenerateForStep8 = () => {
     snackbarOpen,
     setSnackbarOpen,
     handleGenerate,
-    handleCopyToClipboard, // Ensure it’s returned
+    handleCopyToClipboard,
     handleCloseSnackbar,
   };
 };

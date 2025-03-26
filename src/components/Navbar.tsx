@@ -18,14 +18,29 @@ export default function Navbar() {
           <AuthHeader />
         </Box>
         <Box>
-          <Button color="inherit" component={Link} href="/">
+          <Button
+            color="success"
+            variant="contained"
+            component={Link}
+            href="/about"
+            sx={{ ml: 1 }}
+          >
+            کپی رایتینگ با هوش مصنوعی
+          </Button>
+          <Button sx={{ ml: 1 }} color="inherit" component={Link} href="/">
             خانه
           </Button>
-          <Button color="inherit" component={Link} href="/about">
+          <Button sx={{ ml: 1 }} color="inherit" component={Link} href="/about">
             درباره
           </Button>
+
           <SignedIn>
-            <Button color="inherit" component={Link} href="/account">
+            <Button
+              sx={{ ml: 1 }}
+              color="inherit"
+              component={Link}
+              href="/account"
+            >
               حساب من
             </Button>
           </SignedIn>

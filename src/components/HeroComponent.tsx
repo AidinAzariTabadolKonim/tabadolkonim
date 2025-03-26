@@ -5,6 +5,7 @@ import { Box, Button, Typography, Stack, Modal } from "@mui/material";
 import { motion } from "framer-motion";
 import { useUser, SignIn } from "@clerk/nextjs";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import { useRouter } from "next/navigation"; // Import useRouter for navigation
 
 interface HeroComponentProps {
   onAddAccountClick: () => void;
@@ -16,7 +17,9 @@ export default function HeroComponent({
   onCheckListClick,
 }: HeroComponentProps) {
   const { user } = useUser();
+  const router = useRouter(); // Initialize router for navigation
   const [isSignInOpen, setIsSignInOpen] = useState(false);
+  const [isVideoOpen, setIsVideoOpen] = useState(false); // State for video modal
 
   // Handle "Add your own account" button click
   const handleAddAccount = () => {
@@ -25,6 +28,11 @@ export default function HeroComponent({
     } else {
       setIsSignInOpen(true);
     }
+  };
+
+  // Handle "Create Ad Copy with AI" button click
+  const handleCreateAdCopy = () => {
+    router.push("/wizard"); // Navigate to the wizard route
   };
 
   return (
@@ -113,6 +121,25 @@ export default function HeroComponent({
           >
             مشاهده لیست حساب‌ها
           </Button>
+          {/* New Dark Button with Orange Text */}
+          <Button
+            component={motion.button}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            variant="contained"
+            size="large"
+            onClick={handleCreateAdCopy}
+            sx={{
+              borderRadius: "16px",
+              bgcolor: "#1C2526", // Dark background
+              color: "#FF6200", // Orange text
+              "&:hover": {
+                bgcolor: "#2A3435", // Slightly lighter dark on hover
+              },
+            }}
+          >
+            متن تبلیغاتی با هوش مصنوعی ایجاد کنید
+          </Button>
         </Stack>
       </motion.div>
 
@@ -129,9 +156,7 @@ export default function HeroComponent({
             whileTap={{ scale: 0.95 }}
             variant="outlined"
             startIcon={<PlayArrowIcon />}
-            onClick={() =>
-              console.log("Video button clicked - placeholder for popup")
-            }
+            onClick={() => setIsVideoOpen(true)} // Open video modal
             sx={{
               color: "white",
               borderColor: "white",
@@ -167,6 +192,66 @@ export default function HeroComponent({
           }}
         >
           <SignIn />
+        </Box>
+      </Modal>
+
+      {/* Video Modal */}
+      <Modal
+        open={isVideoOpen}
+        onClose={() => setIsVideoOpen(false)}
+        aria-labelledby="video-modal"
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            bgcolor: "background.paper",
+            p: 4,
+            borderRadius: 2,
+            maxWidth: { xs: "90%", sm: 600 }, // Responsive width
+            width: "100%",
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            اینجا کجاست؟
+          </Typography>
+          <Box
+            sx={{
+              position: "relative",
+              paddingBottom: "56.25%", // 16:9 aspect ratio
+              height: 0,
+              overflow: "hidden",
+            }}
+          >
+            <iframe
+              src="https://www.youtube.com/embed/mniSd2hKAes"
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          </Box>
+          <Button
+            variant="contained"
+            onClick={() => setIsVideoOpen(false)}
+            sx={{
+              mt: 2,
+              bgcolor: "#FF6200",
+              "&:hover": { bgcolor: "#E05700" },
+            }}
+          >
+            بستن
+          </Button>
         </Box>
       </Modal>
     </Box>

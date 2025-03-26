@@ -1,6 +1,14 @@
 // app/wizard/Step7.tsx
 "use client";
-import { Box, Typography, TextField } from "@mui/material";
+
+import {
+  Accordion,
+  AccordionSummary,
+  Typography,
+  AccordionDetails,
+  TextField,
+  Box,
+} from "@mui/material";
 import { useWizard } from "./context/WizardContext";
 import {
   OFFER_TYPES,
@@ -12,6 +20,8 @@ import {
   STAGES,
   MARKETING_CHANNELS,
 } from "./data/suggestions";
+import Step7Guide from "./component/Step7Guide";
+import { ExpandMoreSharp } from "@mui/icons-material";
 
 export default function Step7() {
   const { data, setData } = useWizard();
@@ -52,7 +62,14 @@ export default function Step7() {
       <Typography variant="h6" sx={{ mb: 3, color: "primary.main" }}>
         بررسی و ویرایش نهایی
       </Typography>
-
+      <Accordion sx={{ mb: 3 }}>
+        <AccordionSummary expandIcon={<ExpandMoreSharp />}>
+          <Typography variant="h6">راهنما</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Step7Guide />
+        </AccordionDetails>
+      </Accordion>
       {/* Campaign Basics Section */}
       <Box
         sx={{

@@ -1,6 +1,14 @@
 // app/wizard/Step5.tsx
 "use client";
-import { TextField, Box, Autocomplete, Typography } from "@mui/material";
+import {
+  Accordion,
+  AccordionSummary,
+  Typography,
+  AccordionDetails,
+  TextField,
+  Autocomplete,
+  Box,
+} from "@mui/material";
 import {
   OFFER_TYPES,
   OFFER_CATEGORIES,
@@ -8,6 +16,8 @@ import {
 } from "./data/suggestions";
 import { useWizard } from "./context/WizardContext";
 import { SyntheticEvent } from "react";
+import Step5Guide from "./component/Step5Guide";
+import { ExpandMoreSharp } from "@mui/icons-material";
 
 export default function Step5() {
   const { data, setData } = useWizard();
@@ -66,7 +76,14 @@ export default function Step5() {
       <Typography variant="h6" gutterBottom>
         ساخت پیشنهاد ویژه
       </Typography>
-
+      <Accordion sx={{ mb: 3 }}>
+        <AccordionSummary expandIcon={<ExpandMoreSharp />}>
+          <Typography variant="h6">راهنما</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Step5Guide />
+        </AccordionDetails>
+      </Accordion>
       <Autocomplete
         options={OFFER_TYPES}
         value={getValue(data.offerType, OFFER_TYPES)}

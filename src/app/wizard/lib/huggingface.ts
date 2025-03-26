@@ -1,43 +1,109 @@
-// lib/huggingface.ts
-import axios, { AxiosResponse } from "axios";
+import { NextResponse } from "next/server";
+import OpenAI from "openai";
+import { auth } from "@clerk/nextjs/server";
+import { Client, Databases, Query } from "appwrite";
 
-interface HFRequest {
-  inputs: string;
-  parameters?: {
-    max_new_tokens?: number;
-    temperature?: number;
-  };
+export const runtime = "edge";
+
+// Validate API key at startup
+if (!process.env.AVALAI_API_KEY) {
+  throw new Error("AVALAI_API_KEY is not set in environment variables");
 }
 
-interface HFResponse {
-  generated_text: string;
-}
+const openai = new OpenAI({
+  apiKey: process.env.AVALAI_API_KEY,
+  baseURL: "https://api.avalai.ir/v1",
+});
 
-export async function generateCopy(
-  prompt: string
-): Promise<HFResponse | HFResponse[]> {
-  const requestData: HFRequest = {
-    inputs: prompt,
-    parameters: {
-      max_new_tokens: 500,
-      temperature: 0.7,
-    },
-  };
+// Initialize Appwrite Client
+const appwriteClient = new Client()
+  .setEndpoint("https://cloud.appwrite.io/v1") // Replace with your Appwrite endpoint
+  .setProject("YOUR_PROJECT_ID"); // Replace with your Appwrite project ID
+
+const databases = new Databases(appwriteClient);
+
+export async function POST(request: Request) {
+  // Check if the user is authenticated
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "برای دسترسی به این سرویس باید وارد شوید" },
+      { status: 401 }
+    );
+  }
+
+  const databaseId = "YOUR_DATABASE_ID"; // Replace with your database ID
+  const collectionId = "api_call_tracker"; // The collection you created
 
   try {
-    const response: AxiosResponse<HFResponse | HFResponse[]> = await axios.post(
-      `https://api-inference.huggingface.co/models/facebook/mbart-large-50`,
-      requestData,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_HF_TOKEN}`,
+    // Fetch the user's API call data
+    const userDocs = await databases.listDocuments(databaseId, collectionId, [
+      Query.equal("clerkUserId", userId),
+    ]);
+
+    if (userDocs.documents.length === 0) {
+      return NextResponse.json(
+        { error: "داده‌های کاربر یافت نشد" },
+        { status: 404 }
+      );
+    }
+
+    const userDoc = userDocs.documents[0];
+
+    // Check the daily limit
+    if (userDoc.dailyCount >= 3) {
+      return NextResponse.json(
+        {
+          error:
+            "شما به حداکثر تعداد درخواست روزانه (3) رسیده‌اید. لطفاً فردا برای 3 تلاش رایگان خود بازگردید.",
         },
-        timeout: 30000,
-      }
-    );
-    return response.data;
+        { status: 429 } // Too Many Requests
+      );
+    }
+
+    // Proceed with the AI API call
+    const { prompt } = await request.json();
+
+    // Validate prompt
+    if (!prompt || typeof prompt !== "string") {
+      return NextResponse.json(
+        { error: "پرامپت معتبر ارائه نشده است" },
+        { status: 400 }
+      );
+    }
+
+    console.log("Received prompt:", prompt);
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a professional copywriter." },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 800,
+      temperature: 0.7,
+    });
+
+    const generatedText =
+      completion.choices[0]?.message.content || "هیچ پاسخی تولید نشد";
+
+    // Increment the counts
+    await databases.updateDocument(databaseId, collectionId, userDoc.$id, {
+      lifetimeCount: userDoc.lifetimeCount + 1,
+      dailyCount: userDoc.dailyCount + 1,
+    });
+
+    return NextResponse.json({ generated_text: generatedText });
   } catch (error) {
-    console.error("API Error:", error);
-    return { generated_text: "خطا در ارتباط با سرور" };
+    console.error("AvalAI API error:", error);
+    return NextResponse.json(
+      {
+        error:
+          "خطا در ارتباط با سرور: " +
+          (error instanceof Error ? error.message : "خطای ناشناخته"),
+      },
+      { status: 500 }
+    );
   }
 }
