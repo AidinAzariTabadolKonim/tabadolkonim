@@ -22,7 +22,6 @@ export function useAddAccount() {
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "خطا در افزودن حساب");
-
       onSuccess();
       return { success: true, message: result.message };
     } catch (err) {

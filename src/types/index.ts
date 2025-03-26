@@ -52,3 +52,13 @@ export const CATEGORIES = [
   "سایر",
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
+
+export interface AccountsTableProps {
+  accounts: InstagramAccount[];
+  rateAccount: (accountId: string, stars: number) => void;
+  addToWatchlist: (accountId: string) => void;
+  deleteFromWatchlist?: (watchlistId: string) => void;
+  watchlist: WatchlistItem[]; // Fix type from string[] to WatchlistItem[]
+  loading: boolean;
+  error: string | null;
+}

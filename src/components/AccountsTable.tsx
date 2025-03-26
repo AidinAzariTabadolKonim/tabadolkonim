@@ -3,17 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import AccountRow from "./AccountRow";
-import { InstagramAccount, WatchlistItem } from "../types";
-
-interface AccountsTableProps {
-  accounts: InstagramAccount[];
-  rateAccount: (accountId: string, stars: number) => void;
-  addToWatchlist: (accountId: string) => void;
-  deleteFromWatchlist?: (watchlistId: string) => void;
-  watchlist: WatchlistItem[]; // Fix type from string[] to WatchlistItem[]
-  loading: boolean;
-  error: string | null;
-}
+import { InstagramAccount } from "../types";
+import { AccountsTableProps } from "../types";
 
 export default function AccountsTable({
   accounts,
